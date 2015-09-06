@@ -29,7 +29,6 @@
 volatile uint8_t pot_data[2];
 volatile uint8_t pot_n;
 
-//volatile uint8_t user_sw;
 volatile uint8_t user_sw_rd;
 volatile uint8_t user_sw_data;
 
@@ -56,7 +55,7 @@ ISR (TIMER0_OVF_vect)
 	TCCR0B = 0x00;
 
 	if ((~PINB & (1 << PB4)) == user_sw_rd) {
-		PORTD = user_sw_rd;
+		//PORTD = user_sw_rd;
 		// トグル動作
 		if (user_sw_rd) {			
 			user_sw_data = user_sw_data ? 0 : 1;
@@ -77,7 +76,7 @@ ISR (PCINT0_vect)
 	
 	// Timer0を起動
 	TCCR0B = 0x05;	// プリスケーラ－:1024, 1/(8MHz/1024)=128us
-	TCNT0 = 96;	// 128us*(256-96)=20.48ms
+	TCNT0 = 96;		// 128us*(256-96)=20.48ms
 }
 
 //---------------------------------------------------------------------------------------------
@@ -138,8 +137,8 @@ int main(void)
 	// Potentiometer
 	// Enable the ADC and its interrupt feature
 	// and set the ACD clock pre-scalar to clk/128
-	ADCSRA = 0x8F;
-	// ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+	//ADCSRA = 0x8F;
+	ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 	
 	pot_n = 0;
 	// リファレンス電圧: AVCC, 変換結果は左詰め, ADC1シングルエンド入力
@@ -150,19 +149,14 @@ int main(void)
 	ADCSRA |= (1 << ADSC);		// Start Conversion
 	
 	while(1) {
-		/*
-		PORTD = pot_data[0];
-		_delay_ms(1000);
-		PORTD = pot_data[1];
-		_delay_ms(1000);
-		*/
-		
 		switch (user_sw_data) {
 		case 0:
 			PORTB &= ~(1 << PB5);
+			PORTD = pot_data[0];
 			break;
 		case 1:
 			PORTB |= (1 << PB5);
+			PORTD = pot_data[1];
 			break;
 		}
 	}
