@@ -29,7 +29,7 @@
 volatile uint8_t pot_data[2];
 volatile uint8_t pot_n;
 
-volatile uint8_t user_sw;
+//volatile uint8_t user_sw;
 volatile uint8_t user_sw_rd;
 volatile uint8_t user_sw_data;
 
@@ -55,11 +55,10 @@ ISR (TIMER0_OVF_vect)
 	// Timer0を停止
 	TCCR0B = 0x00;
 
-	uint8_t tmp = (~PORTB & (1 << PB4));
-	if (tmp == user_sw_rd) {
-		user_sw = !user_sw;
-		if (user_sw != 0) {
-			// トグル動作
+	if ((~PINB & (1 << PB4)) == user_sw_rd) {
+		PORTD = user_sw_rd;
+		// トグル動作
+		if (user_sw_rd) {			
 			user_sw_data = user_sw_data ? 0 : 1;
 		}
 	}
@@ -73,11 +72,12 @@ ISR (PCINT0_vect)
 	// Pin Change Interruptを無効化
 	PCICR = 0x00;
 	
-	user_sw_rd = (~PORTB & (1 << PB4));
+	//PORTD = PINB;
+	user_sw_rd = (~PINB & (1 << PB4));	
 	
 	// Timer0を起動
 	TCCR0B = 0x05;	// プリスケーラ－:1024, 1/(8MHz/1024)=128us
-	TCNT0 = 176;	// 128us*(256-176)=10.24ms
+	TCNT0 = 96;	// 128us*(256-96)=20.48ms
 }
 
 //---------------------------------------------------------------------------------------------
